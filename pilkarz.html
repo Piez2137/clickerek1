@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clicker Game</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        h1 { color: #333; }
+        button { font-size: 16px; padding: 8px 16px; margin: 10px; cursor: pointer; }
+        #gameArea, #selectionArea, #demonArea { display: none; }
+        #points, #clickButton, #buyBotButton, #buyPickaxeButton, #buyRoboClickerButton, #bots, #roboClickers { display: none; }
+    </style>
+</head>
+<body>
+    <h1>Clicker Game</h1>
+    <button id="startButton">Start Game</button>
+
+    <!-- Game selection area -->
+    <div id="selectionArea">
+        <button id="gameClicker">Clicker</button>
+        <button id="game2">Game 2 (Coming Soon)</button>
+        <button id="game3">Game 3 (Coming Soon)</button>
+    </div>
+
+    <!-- Main game area -->
+    <div id="gameArea">
+        <p id="points">Points: 0</p>
+        <button id="clickButton">Click Me!</button>
+        <button id="buyBotButton" disabled>Buy Bot (100 points) - Adds 1 point/sec</button>
+        <button id="buyPickaxeButton" disabled>Buy Pickaxe (500 points) - Doubles points per click</button>
+        <button id="buyRoboClickerButton" disabled>Buy RoboClicker (750 points) - Adds 10 points/sec</button>
+        <p id="bots">Bots: 0</p>
+        <p id="roboClickers">RoboClickers: 0</p>
+    </div>
+
+    <!-- Demon encounter area -->
+    <div id="demonArea">
+        <h2>A Demon Appeared!</h2>
+        <p>Click "Hit Demon" 30 times in 5 seconds to defeat it, or lose everything!</p>
+        <button id="hitDemonButton">Hit Demon</button>
+        <p id="hitsRemaining">Hits Remaining: 30</p>
+    </div>
+
+    <!-- Fart Sound -->
+    <audio id="fartSound" src="fart.mp3" preload="auto"></audio>
+
+    <script>
+        let points = 0;  // Points counter
+        let bots = 0;    // Bots counter
+        let roboClickers = 0;  // RoboClicker counter
+        let pointsPerClick = 1;  // Points per click (default 1)
+        let botCost = 100; // Initial cost of a bot
+        let roboClickerCost = 750; // Initial cost of a RoboClicker
+        let demonActive = false; // Flag to track demon activity
+        let demonHits = 0; // Hits on demon
+        const fartSound = document.getElementById("fartSound");
+
+        // Start button functionality: show game selection area
+        document.getElementById("startButton").onclick = function() {
+            document.getElementById("startButton").style.display = "none"; // Hide start button
+            document.getElementById("selectionArea").style.display = "block"; // Show selection buttons
+        };
+
+        // Clicker button functionality: go to the game
+        document.getElementById("gameClicker").onclick = function() {
+            document.getElementById("selectionArea").style.display = "none"; // Hide game selection area
+            document.getElementById("gameArea").style.display = "block"; // Show game area
+            document.getElementById("points").style.display = "block";
+            document.getElementById("clickButton").style.display = "inline-block";
+            document.getElementById("buyBotButton").style.display = "inline-block";
+            document.getElementById("buyPickaxeButton").style.display = "inline-block";
+            document.getElementById("buyRoboClickerButton").style.display = "inline-block";
+            document.getElementById("bots").style.display = "block";
+            document.getElementById("roboClickers").style.display = "block";
+        };
+
+        // Game 2 and Game 3 buttons (do nothing for now)
+        document.getElementById("game2").onclick = function() {
+            alert("Game 2 is coming soon!");
+        };
+
+        document.getElementById("game3").onclick = function() {
+            alert("Game 3 is coming soon!");
+        };
+
+        // Function to update points, bots, RoboClickers, and button states
+        function update() {
+            document.getElementById("points").textContent = "Points: " + points;
+            document.getElementById("bots").textContent = "Bots: " + bots;
+            document.getElementById("roboClickers").textContent = "RoboClickers: " + roboClickers;
+            document.getElementById("buyBotButton").textContent = `Buy Bot (${botCost} points) - Adds 1 point/sec`;
+            document.getElementById("buyRoboClickerButton").textContent = `Buy RoboClicker (${roboClickerCost} points) - Adds 10 points/sec`;
+            document.getElementById("buyBotButton").disabled = points < botCost;
+            document.getElementById("buyRoboClickerButton").disabled = points < roboClickerCost;
+            document.getElementById("buyPickaxeButton").disabled = points < 500 || pointsPerClick > 1;
+        }
+
+        // Click button functionality (add points based on pointsPerClick) and play fart sound
+        document.getElementById("clickButton").onclick = function() { 
+            points += pointsPerClick; 
+            fartSound.play(); // Play fart sound
+            update(); 
+        };
+
+        // Buy bot functionality
+        document.getElementById("buyBotButton").onclick = function() { 
+            if (points >= botCost) {
+                points -= botCost;
+                bots++;
+                botCost += 20;
+                fartSound.play();
+                update();
+            }
+        };
+
+        // Buy RoboClicker functionality
+        document.getElementById("buyRoboClickerButton").onclick = function() { 
+            if (points >= roboClickerCost) {
+                points -= roboClickerCost;
+                roboClickers++;
+                roboClickerCost += 250; // Increment cost for next RoboClicker
+                fartSound.play();
+                update();
+            }
+        };
+
+        // Buy pickaxe functionality
+        document.getElementById("buyPickaxeButton").onclick = function() { 
+            if (points >= 500 && pointsPerClick === 1) {
+                points -= 500;
+                pointsPerClick = 2;
+                fartSound.play();
+                document.getElementById("buyPickaxeButton").style.display = "none";
+                update();
+            }
+        };
+
+        // Points from bots and RoboClickers every second
+        setInterval(function() { 
+            points += bots + (roboClickers * 10); 
+            update(); 
+        }, 1000);
+
+        // Demon functionality
+        function spawnDemon() {
+            if (!demonActive) {
+                demonActive = true;
+                demonHits = 0;
+                document.getElementById("gameArea").style.display = "none";
+                document.getElementById("demonArea").style.display = "block";
+                document.getElementById("hitsRemaining").textContent = "Hits Remaining: 30";
+                
+                const timer = setTimeout(() => {
+                    if (demonHits < 30) {
+                        // Failure: Lose points and half the bots
+                        points = 0;
+                        bots = Math.floor(bots / 2);
+                        roboClickers = Math.floor(roboClickers / 2);
+                        alert("You failed to defeat the demon! You lost all your points and half of your bots and RoboClickers.");
+                        document.getElementById("demonArea").style.display = "none";
+                        document.getElementById("gameArea").style.display = "block";
+                        demonActive = false;
+                        update();
+                    }
+                }, 5000); // 5 seconds
+            }
+        }
+
+        // Hit demon functionality
+        document.getElementById("hitDemonButton").onclick = function() {
+            if (demonActive) {
+                demonHits++;
+                const hitsRemaining = 30 - demonHits;
+                document.getElementById("hitsRemaining").textContent = "Hits Remaining: " + hitsRemaining;
+
+                if (demonHits >= 30) {
+                    // Success: Defeat demon
+                    alert("You defeated the demon!");
+                    document.getElementById("demonArea").style.display = "none";
+                    document.getElementById("gameArea").style.display = "block";
+                    demonActive = false;
+                }
+            }
+        };
+
+        // Spawn demon every 5 minutes
+        setInterval(spawnDemon, 300000); // 5 minutes in milliseconds
+    </script>
+</body>
+</html>
